@@ -1,0 +1,19 @@
+services:
+  collector:
+    build: .
+    command: ["python", "-m", "telemetry.collector", "--db", "/data/telemetry.db", "--device-timeout", "5"]
+    ports:
+      - "9000:9000"   # telemetry ingest
+      - "8080:8080"   # /health and /metrics
+    volumes:
+      - telemetry-data:/data
+
+  simulator:
+    build: .
+    depends_on:
+      - collector
+    # Change --mode to normal | drop | malformed | silent to inject faults.
+    command: ["python", "-m", "telemetry.simulator", "--host", "collector", "--mode", "drop", "--count", "60"]
+
+volumes:
+  telemetry-data:
